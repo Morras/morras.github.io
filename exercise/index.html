@@ -1,0 +1,126 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Home exercise</title>
+</head>
+
+<body>
+    <div style="font-size: 10em; text-align: center" id="text"></div>
+
+    <div style="font-size: 10em; text-align: center" id="time">00</div>
+
+    <script>
+        const EXERCISES = [
+            "Wall sit", // Legs
+            "Plank", // Core
+            "Push ups", // Arms
+            "Sit ups", // Core Front
+            "Step up onto chair", // Legs
+            "Back raises", // Core Back
+            "Tricep chair dips", // Arms
+            "Leg raise on your front", // Core Front
+            "Squats", // Legs
+            "Leg raise on your back", // Core Back
+        ];
+
+        const EXERCISE_LENGTH = 30;
+        const PAUSE_LENGTH = 10;
+
+        let timeleft = PAUSE_LENGTH;
+        let stopped = false;
+        let doingExercise = false;
+        let exersiceIndex = 0;
+        document.getElementById("text").innerHTML = EXERCISES[exersiceIndex];
+        document.getElementById("time").innerHTML = timeleft;
+
+        let sounds = [];
+        function loadAudio() {
+            EXERCISES.forEach(exercise => {
+                sounds[exercise] = new Audio("sounds/" + exercise + ".mp3");
+            });
+            sounds["1"]= new Audio("sounds/1.mp3");
+            sounds["2"] = new Audio("sounds/2.mp3");
+            sounds["3"] = new Audio("sounds/3.mp3");
+            sounds["10"] = new Audio("sounds/10 seconds.mp3");
+            sounds["break"] = new Audio("sounds/Break.mp3");
+            sounds["start"] = new Audio("sounds/Start.mp3");
+        }
+
+        function timeIsUp() {
+            doingExercise = !doingExercise;
+
+            // Stop when we reach the pause after the last exercise
+            if(exersiceIndex === EXERCISES.length-1 && !doingExercise){
+                stopped = true
+                document.getElementById("text").innerHTML = "done";
+                return;
+            }
+
+            // Starting pause
+            if(!doingExercise) {
+                // Show what the next exercise is
+                exersiceIndex++;
+                document.getElementById("text").innerHTML = EXERCISES[exersiceIndex];
+                timeleft = PAUSE_LENGTH;
+            // Starting exersice
+            } else {
+                timeleft = EXERCISE_LENGTH;
+            }
+        }
+
+        function getSeconds() {
+            return Math.round(new Date().getTime() / 1000);
+        }
+
+        let lastTime = getSeconds();
+        window.setInterval(() => {
+            if (stopped) {
+                return;
+            }
+            let now = getSeconds();
+            if (now - lastTime > 0){
+                lastTime = now;
+                timeleft--;
+            }
+            if (timeleft < 0 || (timeleft <= 0 && !doingExercise)) {
+                timeleft = 0;
+                timeIsUp();
+            }
+            speak();
+            document.getElementById("time").innerHTML = timeleft;
+        }, 250); // Every quarter of a second
+
+        function speak() {
+            // We start a break, lets speak out what the next exersice is
+            if (timeleft === PAUSE_LENGTH && !doingExercise) {
+                playAudio(EXERCISES[exersiceIndex]);
+            } else if (timeleft === 10) {
+                playAudio("10");
+            } else if (timeleft === 3) {
+                playAudio("3");
+            } else if (timeleft === 2) {
+                playAudio("2");
+            } else if (timeleft === 1) {
+                playAudio("1");
+            } else if (timeleft === EXERCISE_LENGTH) {
+                playAudio("start");
+            } else if (timeleft === 0 && doingExercise) {
+                playAudio("break");
+            }
+        }
+
+        let lastPlayed = ""
+        function playAudio(name){
+            if ( lastPlayed === name ){
+                return;
+            }
+            lastPlayed = name;
+            sounds[name].play();
+        }
+
+        loadAudio();
+    </script>
+</body>
+
+</html>
